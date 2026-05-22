@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  googleId  String?  @unique
+  token     Json?
+  videos    Video[]
+  createdAt DateTime @default(now())
+}
+
+model Video {
+  id           String      @id @default(cuid())
+  ownerId      String
+  owner        User        @relation(fields: [ownerId], references: [id])
+  filepath     String
+  durationSec  Int?
+  status       VideoStatus @default(DRAFT)
+  ytVideoId    String?
+  visibility   Visibility  @default(PRIVATE)
+  publishAt    DateTime?
+
+  title        String?
+  description  String?
+  tags         String[]
+  chapters     Json?
+  thumbnail    String?
+
+  jobId        String?
+  logs         Log[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+enum VideoStatus {
+  DRAFT
+  QUEUED
+  PROCESSING
+  UPLOADING
+  PUBLISHED
+  FAILED
+}
+
+enum Visibility {
+  PUBLIC
+  UNLISTED
+  PRIVATE
+}
+
+model Log {
+  id        String   @id @default(cuid())
+  videoId   String
+  video     Video    @relation(fields: [videoId], references: [id])
+  level     String
+  message   String
+  createdAt DateTime @default(now())
+}
